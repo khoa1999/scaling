@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo,useCallback,useContext } from 'react';
 //import { useDispatch,useSelector } from "react-redux";
 //import { addPlant, removePlant, addZone, removeZone, addTraySegment, removeTraySegment, addCable, removeCable, addCableToTraySegment } from '../store.tsx';
-import { debounce, isEqual } from 'lodash';
+import { debounce, isEqual, includes } from 'lodash';
 import { GlobalContext } from '../context';
 export default function CableCalculate() {
     const phaseOptions = [['1Ph+N'], ['2Ph', '3Ph', '3Ph+N'], ['3Ph', '3Ph+N']];
@@ -298,7 +298,6 @@ export default function CableCalculate() {
                 numcore,
                 outerstealth,
                 installation,
-                neutral,
                 distance,
                 protection,
                 bundle,
@@ -310,6 +309,7 @@ export default function CableCalculate() {
                 'material': conductor,
                 'choice': included,
                 'maxU': parseFloat(maxU),
+                'neutral': parseInt(neutral),
             }),
         }).then(response => {
             if (!response.ok) {
@@ -364,7 +364,8 @@ export default function CableCalculate() {
         setMethod(installationOptions[bundle ? 'multi' : 'single'][installation][numcore > 2 ? 'threecore' : 'twocore']);
     }, [installation, bundle, numcore]);
     useMemo(() => {
-        setCableMethod(method['options'][0])
+        const a = method['options'].map((method)=>beautifyString(method))
+        setCableMethod(includes(a, cablemethod) ? cablemethod : a[0]);
     },[method])
     useMemo(() => {
         if (installation === 'air')
@@ -485,7 +486,7 @@ export default function CableCalculate() {
                     <form>
                         <div className="form-group-inline">
                             <label htmlFor="nautral" style={{ display: phase !== '3Ph+N' ? 'none' : 'block' }}>Neutral Loading %</label>
-                            <select id="neutral" onChange={handleNeutralChange} style={{ display: phase !== '3Ph+N' ? 'none' : 'block' }}>
+                            <select id="neutral" onChange={handleNeutralChange} style={{ display: phase !== '3Ph+N' ? 'none' : 'block' }} value={neutral }>
                                 <option value={50}>50%</option>
                                 <option value={75}>75%</option>
                                 <option value={85}>85%</option>
@@ -544,7 +545,7 @@ export default function CableCalculate() {
                     <div className="form-group-inline">
                         <div className="form-group-inline" >
                             <label htmlFor="options">Method</label>
-                            <select id="options" onChange={handleCableMethod}>
+                            <select id="options" onChange={handleCableMethod} value={cablemethod }>
                                 {method['options'].map((value) => { 
                                     const opt = beautifyString(value);
                                     return (<option value={opt} selected={cablemethod===opt?true:false }>{opt}</option>);
@@ -598,8 +599,8 @@ export default function CableCalculate() {
                             </div>
                             <div className="form-group-inline">
                                 <label htmlFor="insulation">Type of Insulation</label>
-                                <select id="insulation" onChange={handleInsulationChange } >
-                                    <option value="XLPE" selected>XLPE</option>
+                                <select id="insulation" onChange={handleInsulationChange} value={insulation } >
+                                    <option value="XLPE">XLPE</option>
                                     <option value="PVC">PVC</option>
                                 </select>
                             </div>
@@ -753,24 +754,24 @@ export default function CableCalculate() {
                     <div className="form-group-inline">
                         <label htmlFor="heightTray">Height of Tray from Ground</label>
                         <input type="text" id="heightTray"/>
-                            <label htmlFor="heightCabinet">Height of Cabinet</label>
-                            <input type="text" id="heightCabinet" onChange={handleA2} />
+                        <label htmlFor="heightCabinet">Height of Cabinet</label>
+                         <input type="text" id="heightCabinet" onChange={handleA2} />
                     </div>
                     <div className="form-group-inline">
                         <label htmlFor="elevationChange">Elevation Change in Tray</label>
-                            <input type="text" id="elevationChange" onChange={handleA3} />
+                        <input type="text" id="elevationChange" onChange={handleA3} />
                     </div>
                     <div className="form-group-inline">
                         <label htmlFor="horizontalDistanceTrayCabinet">Horizontal Distance between Tray and Cabinet</label>
-                            <input type="text" id="horizontalDistanceTrayCabinet" onChange={handleA4} />
+                        <input type="text" id="horizontalDistanceTrayCabinet" onChange={handleA4} />
                     </div>
                     <div className="form-group-inline">
-                        <label htmlFor="heightDistanceTrayEquipment">Height between Tray and Equipment</label>
-                            <input type="text" id="heightDistanceTrayEquipment" onChange={handleA5} />
+                         <label htmlFor="heightDistanceTrayEquipment">Height between Tray and Equipment</label>
+                         <input type="text" id="heightDistanceTrayEquipment" onChange={handleA5} />
                     </div>
                     <div className="form-group-inline">
                         <label htmlFor="distanceTrayEquipment">Distance between Tray and Equipment</label>
-                            <input type="text" id="distanceTrayEquipment" onChange={handleA6} />
+                        <input type="text" id="distanceTrayEquipment" onChange={handleA6} />
                     </div>
 
                 </form>
@@ -825,4 +826,4 @@ export default function CableCalculate() {
         <script src="static/cablecal.js"></script>
         <button type="button" id="exportButton">Export to Excel</button></>
     );
-}
+}    
